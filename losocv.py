@@ -7,8 +7,9 @@ from tensorflow.python.data.ops.dataset_ops import AUTOTUNE
 
 class LosoCv():
     
-    def __init__(self):
-        csvFile = './dataset-csv/combinedDataset.csv'
+    def __init__(self, csvFile=None):
+        if(csvFile is None):
+            csvFile = './dataset-csv/combinedDataset.csv'
         
         with open(csvFile) as f:
             reader = csv.reader(f, delimiter=',')
