@@ -11,6 +11,7 @@ class LosoCv():
         if(csvFile is None):
             csvFile = './dataset-csv/combinedDataset.csv'
         
+        print('dataset file: ' + csvFile)
         with open(csvFile) as f:
             reader = csv.reader(f, delimiter=',')
             self.data = list(reader) 

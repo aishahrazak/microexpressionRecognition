@@ -133,19 +133,19 @@ class TrainProcedure():
         plt.savefig(fname=f+'-loss.png', bbox_inches='tight')
         
     def savePlotIterations(self,df,fname):
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(20,15))
         for labels, dfi in df.groupby("Subject-LO"):
             dfi.plot(ax = ax, x = 'Iteration', y = 'Best Acc', label = labels)
         ax.legend(title = 'Best Acc per iterations',bbox_to_anchor=(0.5, 1.05), ncol=6)
         #fig.show()
-        fig.savefig(fname+'-acc.png')
+        fig.savefig(fname+'-acc.png', bbox_inches='tight')
         
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(20,15))
         for labels, dfi in df.groupby("Subject-LO"):
             dfi.plot(ax = ax, x = 'Iteration', y = 'Best Loss', label = labels)
         ax.legend(title = 'Best Loss per iterations',bbox_to_anchor=(0.5, 1.05), ncol=6)
         #fig.show()
-        fig.savefig(fname+'-loss.png')
+        fig.savefig(fname+'-loss.png',bbox_inches='tight')
         
         
     def savePlotEpochAccLoss(self, history1,f):

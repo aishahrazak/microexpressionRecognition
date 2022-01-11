@@ -24,36 +24,37 @@ try:
     parser.add_argument('--ftEpoch', type=int, dest='noOfFtEpoch', default=10)
     parser.add_argument('--outputPath', dest='outp', default='output')
     parser.add_argument('--expName', dest='expName', default='head-base')
+    parser.add_argument('--loadFrom', dest='loadFrom', default='')
     args = parser.parse_args()
     print(args)
 
     fld = os.getcwd()
-    datasetFile = fld + '\dataset-csv\combinedDataset3class.csv'
-    weights = fld + '/trainingWeights'
+    datasetFile = fld + '\\dataset-csv\combinedDataset3class.csv'
+    weights = fld + '\\trainingWeights'
+    BASE_MODEL_PATH = '{}\\3class-trunc2.h5'.format(weights)
     trainProc = TrainProcedure()
     loso = LosoCv(datasetFile)
     resultCounts = [0,0,0,0,0,0,0,0,0] #TP0, FN0, FP0, TP1, FN1, FP1, TP2, FN2, FP2
 
-    INPUT_SHAPE = (224,224,3)
-    effB0_model = EfficientNetB0(weights='imagenet', 
-                    include_top=False, input_shape=INPUT_SHAPE)
-    effB0_model.trainable = False
-    #effB0_model.summary()
-    truncEffB0Model = Model(inputs=effB0_model.input ,outputs=effB0_model.get_layer('block2b_add').output,  name='efficientnetb0')
+    if(args.loadFrom == ''): #Only create new model if not using previously trained
+        INPUT_SHAPE = (224,224,3)
+        effB0_model = EfficientNetB0(weights='imagenet', 
+                        include_top=False, input_shape=INPUT_SHAPE)
+        effB0_model.trainable = False
+        #effB0_model.summary()
+        truncEffB0Model = Model(inputs=effB0_model.input ,outputs=effB0_model.get_layer('block2b_add').output,  name='efficientnetb0')
 
-    # ADD NEW TRAINABLE LAYERS ON TOP TO BUILD THE FINAL MODEL
-
-    BASE_MODEL_PATH = '{}/3class-trunc2.h5'.format(weights)
-    inputs = Input(shape=(224,224,3))
-    #data_augmentation = Sequential([RandomFlip('horizontal'), RandomContrast(0.2)])
-    #x = preprocess_input(inputs)
-    x = truncEffB0Model(inputs, training=False) #run in inference mode
-    x = GlobalAveragePooling2D()(x)
-    x = Dropout(0.5)(x)
-    outputs = Dense(3,activation='softmax', kernel_regularizer=regularizers.l1_l2(l1=0.01, l2=0.01))(x) #3 output classes
-    model = Model(inputs, outputs)
-    model.save(BASE_MODEL_PATH)
-    effB0_model.summary()
+        # ADD NEW TRAINABLE LAYERS ON TOP TO BUILD THE FINAL MODEL
+        inputs = Input(shape=(224,224,3))
+        #data_augmentation = Sequential([RandomFlip('horizontal'), RandomContrast(0.2)])
+        #x = preprocess_input(inputs)
+        x = truncEffB0Model(inputs, training=False) #run in inference mode
+        x = GlobalAveragePooling2D()(x)
+        x = Dropout(0.5)(x)
+        outputs = Dense(3,activation='softmax', kernel_regularizer=regularizers.l1_l2(l1=0.01, l2=0.01))(x) #3 output classes
+        model = Model(inputs, outputs)
+        model.save(BASE_MODEL_PATH)
+        effB0_model.summary()
 
     today = datetime.now()
     dt = today.strftime("%d%m%Y%H")
@@ -69,8 +70,13 @@ try:
         testSet = loso.getTestDataSet(subject)
         testSet = testSet.batch(len(testSet))
         trainDataset,valDataset = loso.getTrainValDataSet(subject)
-        model = load_model(BASE_MODEL_PATH)
-
+        
+        if(args.loadFrom != ''):
+            fname = '{}/{}-finetuning-{}_finetune.h5'.format(weights,subject,args.loadFrom.strip("'"))
+            print('loading from ' + fname)
+            model = load_model(fname)
+        else:
+            model = load_model(BASE_MODEL_PATH)
         #train
         
         for i in range(args.noOfHeadIter):
