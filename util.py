@@ -2,7 +2,6 @@ import telegram_send
 import csv
 
 def sendNotification(msg):
-    #token = '5014749052:AAEq67L0O6s-gQxhc8rBzFydmrSoyZNPnzc'
     telegram_send.send(messages=[msg])
     
 def getBestAccLossTrain(history,data,i,subject):
@@ -22,4 +21,3 @@ def saveListToCSV(l, name):
         writer = csv.writer(f)
         writer.writerows(l)
     
-#sendNotification('test message')
